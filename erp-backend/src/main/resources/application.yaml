@@ -7,7 +7,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/erp_db # 替換為你的 DB 名稱
     username: postgres                          # 你的 PostgreSQL 帳號
-    password: your_password                    # 你的 PostgreSQL 密碼
+    password: Cicada58                    # 你的 PostgreSQL 密碼
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
