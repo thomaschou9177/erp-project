@@ -1,0 +1,25 @@
+ERP-BACKEND
+└── src
+    └── main
+        └── java
+            └── com
+                └── erp
+                    ├── controller                     <-- 本次新增
+                    │   ├── ProductController.java
+                    │   ├── InventoryController.java
+                    │   └── SalesOrderController.java
+                    ├── dto                            <-- 本次擴充
+                    │   ├── ApiResponse.java
+                    │   ├── AdjustStockRequest.java
+                    │   ├── CreateOrderRequest.java
+                    │   └── OrderItemRequest.java
+                    ├── entity
+                    │   ├── Product.java / Inventory.java / ...
+                    ├── exception                      <-- 本次新增
+                    │   └── GlobalExceptionHandler.java
+                    ├── repository
+                    │   ├── ProductRepository.java / ...
+                    ├── service
+                    │   ├── InventoryService.java
+                    │   └── SalesOrderService.java
+                    └── ErpBackendApplication.java
