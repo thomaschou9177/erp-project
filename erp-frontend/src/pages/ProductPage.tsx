@@ -1,5 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Button, Card, Form, Input, InputNumber, Modal, Table, Tag, message } from 'antd';
+import { Button, Card, Form, Input, InputNumber, message, Modal, Switch, Table, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
 import api from '../api/axiosInstance';
 
@@ -47,6 +47,21 @@ export const ProductPage: React.FC = () => {
     }
   };
 
+  const handleToggleStatus = async (id: number, checked: boolean) => {
+    // 這裡的 'ACTIVE' / 'INACTIVE' 請根據你後端 Entity 的定義進行修改
+    const newStatus = checked ? 'ACTIVE' : 'INACTIVE'; 
+    
+    try {
+      // 假設你的後端有提供 PUT 或 PATCH 更新狀態的 API
+      await api.put(`/products/${id}/status`, { status: newStatus });
+      message.success('狀態更新成功');
+      // 更新成功後重新取得列表資料，讓畫面刷新
+      fetchProducts(); 
+    } catch (error) {
+      message.error('狀態更新失敗，請檢查後端連線');
+    }
+  };
+
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
     { title: 'SKU 編號', dataIndex: 'sku', key: 'sku' },
@@ -67,6 +82,21 @@ export const ProductPage: React.FC = () => {
         </Tag>
       )
     },
+    // ▼▼▼ 新增這個操作欄位 ▼▼▼
+  {
+    title: '操作',
+    key: 'action',
+    render: (_: any, record: any) => (
+      <Switch
+        // 判斷開關是否為開啟狀態
+        checked={record.status === 'ACTIVE' || record.status === '上架中'}
+        // 點擊時觸發 API
+        onChange={(checked) => handleToggleStatus(record.id, checked)}
+        checkedChildren="上架"
+        unCheckedChildren="下架"
+      />
+    ),
+  },
   ];
 
   return (
@@ -90,8 +120,12 @@ export const ProductPage: React.FC = () => {
           <Form.Item name="name" label="商品名稱" rules={[{ required: true, message: '請輸入商品名稱' }]}>
             <Input placeholder="例如: 無線滑鼠" />
           </Form.Item>
-          <Form.Item name="price" label="單價" rules={[{ required: true, message: '請輸入單價' }]}>
-            <InputNumber style={{ width: '100%' }} min={1} placeholder="例如: 1200" />
+          <Form.Item name="price" label="單價" rules={[
+                    { required: true, message: '請輸入商品單價' },
+                    // 加入 type 與 min 驗證，當輸入小於 1 時會跳出紅字警告
+                    { type: 'number', min: 0.01, message: '單價必須大於 0.01，不可為負數或零' }
+                  ]}>
+            <InputNumber style={{ width: '100%' }} placeholder="例如: 1200" />
           </Form.Item>
         </Form>
       </Modal>
