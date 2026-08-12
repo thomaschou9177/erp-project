@@ -1,6 +1,8 @@
-import { AppstoreOutlined, ShoppingOutlined } from '@ant-design/icons';
+import { AppstoreOutlined, DatabaseOutlined, HistoryOutlined, ShoppingOutlined } from '@ant-design/icons';
 import { Layout, Menu, theme } from 'antd';
 import React, { useState } from 'react';
+import InventoryLogPage from './pages/InventoryLogPage';
+import InventoryPage from './pages/InventoryPage';
 import { OrderPage } from './pages/OrderPage';
 import { ProductPage } from './pages/ProductPage';
 
@@ -10,6 +12,21 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('products');
   const { token: { colorBgContainer, borderRadiusLG } } = theme.useToken();
 
+  // 依據 activeTab 渲染對應的頁面組件
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'products':
+        return <ProductPage />;
+      case 'orders':
+        return <OrderPage />;
+      case 'inventory':
+        return <InventoryPage />;
+      case 'inventory-logs':
+        return <InventoryLogPage />;
+      default:
+        return <ProductPage />;
+    }
+  };
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider breakpoint="lg" collapsedWidth="0">
@@ -24,6 +41,8 @@ export const App: React.FC = () => {
           items={[
             { key: 'products', icon: <AppstoreOutlined />, label: '商品主檔管理' },
             { key: 'orders', icon: <ShoppingOutlined />, label: '銷售訂單管理' },
+            { key: 'inventory', icon: <DatabaseOutlined />, label: '現有庫存管理' },
+            { key: 'inventory-logs', icon: <HistoryOutlined />, label: '庫存異動紀錄' },
           ]}
         />
       </Sider>
@@ -31,7 +50,7 @@ export const App: React.FC = () => {
         <Header style={{ padding: 0, background: colorBgContainer }} />
         <Content style={{ margin: '24px 16px 0' }}>
           <div style={{ padding: 24, minHeight: 360, background: colorBgContainer, borderRadius: borderRadiusLG }}>
-            {activeTab === 'products' ? <ProductPage /> : <OrderPage />}
+            {renderContent()}
           </div>
         </Content>
         <Footer style={{ textAlign: 'center' }}>ERP System ©2026 Created with React & Spring Boot</Footer>
