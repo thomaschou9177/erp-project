@@ -1,6 +1,7 @@
-import { Button, Form, Input, InputNumber, message, Modal, Select, Space, Table, Tag } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
+import { Button, Form, Input, InputNumber, Modal, Select, Space, Table, Tag, message } from 'antd';
 import React, { useEffect, useState } from 'react';
-import api from '../api/axiosInstance'; // 請替換為您的 axios 實例路徑
+import api from '../api/axiosInstance';
 
 interface InventoryItem {
   id: number;
@@ -10,14 +11,14 @@ interface InventoryItem {
   updatedAt: string;
 }
 
-const InventoryPage: React.FC = () => {
+export const InventoryPage: React.FC = () => {
   const [inventories, setInventories] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [form] = Form.useForm();
 
-  // 1. 取得所有庫存列表 (呼叫 GET /api/inventories)
+  // 1. 取得所有庫存列表
   const fetchInventory = async () => {
     setLoading(true);
     try {
@@ -34,28 +35,38 @@ const InventoryPage: React.FC = () => {
     fetchInventory();
   }, []);
 
-  // 2. 開啟調整庫存 Modal
-  const handleOpenModal = (record: InventoryItem) => {
-    setSelectedItem(record);
-    form.setFieldsValue({
-      productId: record.productId,
-      changeType: 'INBOUND',
-      quantity: 1,
-      referenceNo: '',
-      operator: 'SYSTEM'
-    });
+  // 2. 開啟 Modal (傳入 record 代表調整現有商品；不傳代表主動新增/初始化庫存)
+  const handleOpenModal = (record?: InventoryItem) => {
+    if (record) {
+      setSelectedProductId(record.productId);
+      form.setFieldsValue({
+        productId: record.productId,
+        changeType: 'INBOUND',
+        quantity: 10,
+        referenceNo: '',
+        operator: 'SYSTEM'
+      });
+    } else {
+      setSelectedProductId(null);
+      form.resetFields();
+      form.setFieldsValue({
+        changeType: 'INBOUND',
+        quantity: 10,
+        operator: 'SYSTEM'
+      });
+    }
     setIsModalOpen(true);
   };
 
-  // 3. 送出庫存調整 (呼叫 POST /api/inventories/adjust)
+  // 3. 送出庫存調整
   const handleAdjustSubmit = async (values: any) => {
     try {
       await api.post('/inventories/adjust', values);
-      message.success('庫存調整成功');
+      message.success('庫存更新成功');
       setIsModalOpen(false);
-      fetchInventory(); // 重新整理列表
+      fetchInventory();
     } catch (err: any) {
-      message.error(err.response?.data?.message || '庫存調整失敗');
+      message.error(err.response?.data?.message || '庫存更新失敗');
     }
   };
 
@@ -90,7 +101,13 @@ const InventoryPage: React.FC = () => {
 
   return (
     <div style={{ padding: 24 }}>
-      <h2>現有庫存管理</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+        <h2>現有庫存管理</h2>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => handleOpenModal()}>
+          新增 / 進貨庫存
+        </Button>
+      </div>
+
       <Table 
         dataSource={inventories} 
         columns={columns} 
@@ -98,17 +115,25 @@ const InventoryPage: React.FC = () => {
         loading={loading} 
       />
 
-      {/* 調整庫存彈窗 */}
       <Modal
-        title={`調整庫存 - 商品 ID: ${selectedItem?.productId}`}
+        title={selectedProductId ? `調整庫存 - 商品 ID: ${selectedProductId}` : '新增 / 初始化商品庫存'}
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
         onOk={() => form.submit()}
         destroyOnClose
       >
         <Form form={form} layout="vertical" onFinish={handleAdjustSubmit}>
-          <Form.Item name="productId" hidden>
-            <Input />
+          <Form.Item
+            name="productId"
+            label="商品 ID"
+            rules={[{ required: true, message: '請輸入商品 ID' }]}
+          >
+            <InputNumber 
+              min={1} 
+              style={{ width: '100%' }} 
+              placeholder="請輸入商品 ID (例如: 2)" 
+              disabled={!!selectedProductId} 
+            />
           </Form.Item>
 
           <Form.Item name="changeType" label="異動類型" rules={[{ required: true }]}>
@@ -119,12 +144,15 @@ const InventoryPage: React.FC = () => {
             </Select>
           </Form.Item>
 
-          <Form.Item name="quantity" label="數量" rules={[{ required: true, min: 1, message: '數量必須大於 0' }]}>
+          <Form.Item name="quantity" label="數量" rules={[
+            { required: true, message: '請輸入數量' },
+            { type: 'number', min: 1, message: '數量必須大於 0' } // 加上 type: 'number'
+          ]}>
             <InputNumber min={1} style={{ width: '100%' }} />
           </Form.Item>
 
           <Form.Item name="referenceNo" label="關聯單據號碼">
-            <Input placeholder="例：SO-20260812-001 或 PO-1002" />
+            <Input placeholder="例：PO-20260812-001" />
           </Form.Item>
 
           <Form.Item name="operator" label="操作人員">
