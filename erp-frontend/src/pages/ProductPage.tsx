@@ -55,8 +55,16 @@ export const ProductPage: React.FC = () => {
       // 假設你的後端有提供 PUT 或 PATCH 更新狀態的 API
       await api.put(`/products/${id}/status`, { status: newStatus });
       message.success('狀態更新成功');
+      
       // 更新成功後重新取得列表資料，讓畫面刷新
-      fetchProducts(); 
+      // fetchProducts(); 
+
+      // 僅更新該筆資料的 status，保持原本陣列順序不變
+      setProducts(prevProducts =>
+        prevProducts.map(item =>
+          item.id === id ? { ...item, status: newStatus } : item
+        )
+      );
     } catch (error) {
       message.error('狀態更新失敗，請檢查後端連線');
     }

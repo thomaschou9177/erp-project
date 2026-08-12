@@ -3,7 +3,7 @@ package com.erp.controller;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,12 +27,13 @@ import lombok.RequiredArgsConstructor;
 public class ProductController {
 
     private final ProductRepository productRepository;
-    @Autowired
-    private ProductService productService;
+    private final ProductService productService; // 改為 final，由 Lombok 自動注入
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<Product>>> getAllProducts() {
-        return ResponseEntity.ok(ApiResponse.success(productRepository.findAll()));
+        // 加上 Sort.by 依 ID 升冪排序，解決更新後順序跳動問題
+        List<Product> products = productRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
+        return ResponseEntity.ok(ApiResponse.success(products));
     }
 
     @GetMapping("/{id}")
