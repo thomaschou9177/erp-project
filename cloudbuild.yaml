@@ -1,0 +1,11 @@
+steps:
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    args:
+      - 'gcloud'
+      - 'run'
+      - 'deploy'
+      - 'erp-backend-service'
+      - '--source=./erp-backend'
+      - '--region=asia-east1'
+      - '--allow-unauthenticated'
+images: []
